@@ -1,0 +1,164 @@
+<html>
+<head>
+    <title>How I Spend My Day</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root {
+  --font-size: 16px;
+  --sleep: #46aaaa;
+  --creative: #db6861;
+  --admin: #7ba247;
+  --leisure: #d8c660;
+  --wellness: #505d89;
+  --other: #bacccc;
+  --hours: 1;
+  --background: rgb(242,240,230);
+}
+
+body { font-size: var(--font-size) / 30; font-family: sans-serif; padding: var(--font-size); display: grid }
+body * {margin:0;padding:0;border:none;display:block; text-align: center; }
+
+ul,ol { display: inline-flex; width: 100%; min-height: calc(var(--font-size) * 2); position: relative; }
+
+[data] > li { position: absolute; z-index: 1; top: 0;bottom: 0; align-content: center; padding: calc(var(--font-size) / 2); }
+
+[chart] li {
+  width: calc(var(--hours) / 24 * 100%); white-space: nowrap;
+}
+
+.sleep { background: var(--sleep) }
+.creative { background: var(--creative) }
+.admin { background: var(--admin) }
+.leisure { background: var(--leisure) }
+.wellness { background: var(--wellness) }
+.other { background: var(--other) }
+
+[labels] { margin-bottom: var(--font-size) }
+[labels] li { transform: translateX(-50%) }
+[labels] span { background: var(--background); }
+[labels]:after {
+  content: '12';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transform: translateX(50%);
+}
+[labels]:before {
+  content: '';
+  width: 100%;
+  height: 0;
+  border-bottom: 1px solid;
+  position: absolute;
+  bottom: calc(var(--font-size) / 2 )
+}
+
+[legend] { margin: var(--font-size) auto; width: auto; gap: calc(var(--font-size) / 2); white-space: nowrap; display: flex; gap: calc(var(--font-size) * 2) }
+[legend] li { gap: calc(var(--font-size) / 2); display: inline-flex; align-items: center; }
+[legend] span { aspect-ratio: 1/1; width: var(--font-size); display: inline-block; }
+
+[chart] { background: var(--background); padding: calc(var(--font-size) * 2) }
+    </style>
+</head>
+<body
+    x-init="
+        url = new URLSearchParams(window.location.search);
+        name = url.get('name');
+        hours = url.get('hours');
+        blocks = hours.split(',').map((hour) => {
+            key = hour.slice(0, 1);
+            switch (key) {
+                case 's':
+                    key = 'sleep';
+                    break;
+                case 'c':
+                    key = 'creative';
+                    break;
+                case 'a':
+                    key = 'admin';
+                    break;
+                case 'l':
+                    key = 'leisure';
+                    break;
+                case 'w':
+                    key = 'wellness';
+                    break;
+                case 'o':
+                    key = 'other';
+                    break;
+            }
+            return {
+                key,
+                hours: hour.slice(1)
+            }
+        });
+    "    
+>
+    <ul legend>
+        <li>
+          <span class="sleep"></span>
+          Sleep/Rest
+        </li>
+        <li>
+          <span class="creative"></span>
+          Creative Work
+        </li>
+        <li>
+          <span class="admin"></span>
+          Job/Admin
+        </li>
+        <li>
+          <span class="leisure"></span>
+          Food/Leisure
+        </li>
+        <li>
+          <span class="wellness"></span>
+          Wellness/Exercise
+        </li>
+        <li>
+          <span class="other"></span>
+          Other/Misc
+        </li>
+      </ul>
+      
+      <div chart>
+        <ol labels>
+          <li>12<span>AM</span></li>
+          <li>1</li>
+          <li>2</li>
+          <li>3</li>
+          <li>4</li>
+          <li>5</li>
+          <li>6</li>
+          <li>7</li>
+          <li>8</li>
+          <li>9</li>
+          <li>10</li>
+          <li>11</li>
+          <li>12<span>PM</span></li>
+          <li>1</li>
+          <li>2</li>
+          <li>3</li>
+          <li>4</li>
+          <li>5</li>
+          <li>6</li>
+          <li>7</li>
+          <li>8</li>
+          <li>9</li>
+          <li>10</li>
+          <li>11</li>
+        </ol>
+      
+        <ul data>
+          <li x-text="name"></li>
+          <ol>
+            <template x-for="block in blocks">
+                <li x-bind:class="block.key" :style="'--hours:' + block.hours"></li>
+            </template>
+          </ol>
+        </ul>
+      </div>
+
+      <p style="margin: 20px">Reluctantly made by <a style="color: #db6861" href="https://antoinebutler.com/">Antoine</a></p>
+</body>
+</html>
