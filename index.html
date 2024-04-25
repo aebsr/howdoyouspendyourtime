@@ -20,9 +20,9 @@ body * {margin:0;padding:0;border:none;display:block; text-align: center; }
 
 ul,ol { display: inline-flex; width: 100%; min-height: calc(var(--font-size) * 2); position: relative; }
 
-[data] > li { position: absolute; z-index: 1; top: 0;bottom: 0; align-content: center; padding: calc(var(--font-size) / 2); }
+[data] > li:first-child { position: absolute; z-index: 1; top: 0;bottom: 0; align-content: center; padding: calc(var(--font-size) / 2); }
 
-[chart] li {
+[chart] ol li {
   width: calc(var(--hours) / 24 * 100%); white-space: nowrap;
 }
 
@@ -58,6 +58,36 @@ ul,ol { display: inline-flex; width: 100%; min-height: calc(var(--font-size) * 2
 [legend] span { aspect-ratio: 1/1; width: var(--font-size); display: inline-block; }
 
 [chart] { background: var(--background); padding: calc(var(--font-size) * 2) }
+
+[error] {
+    /* color: var(--wellness); */
+    background: var(--leisure);
+    padding: var(--font-size);
+    margin: var(--font-size);
+    border-radius: var(--font-size);
+    display: inline-block;
+    position: fixed;
+    bottom: var(--font-size);
+    left: var(--font-size);
+    text-align: left;
+}
+
+.alert {
+    background: var(--wellness);
+    color: var(--background);
+    font-weight: bold;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--creative);
+    color: white;
+    border-radius: 100%;
+    width: var(--font-size);
+    height: var(--font-size);
+    padding: calc(var(--font-size) / 2);
+    transform: translate(50%, -50%);
+    display: block;
+}
     </style>
 </head>
 <body
@@ -92,6 +122,10 @@ ul,ol { display: inline-flex; width: 100%; min-height: calc(var(--font-size) * 2
                 hours: hour.slice(1)
             }
         });
+
+        total = blocks.reduce((acc, block) => acc + parseFloat(block.hours), 0);
+        over = total > 24;
+        under = total < 24;
     "    
 >
     <ul legend>
@@ -156,9 +190,19 @@ ul,ol { display: inline-flex; width: 100%; min-height: calc(var(--font-size) * 2
                 <li x-bind:class="block.key" :style="'--hours:' + block.hours"></li>
             </template>
           </ol>
+          <template x-if="over">
+            <li class="alert">!</li>
+        </template>
         </ul>
       </div>
 
       <p style="margin: 20px">Reluctantly made by <a style="color: #db6861" href="https://antoinebutler.com/">Antoine</a></p>
+
+    <template x-if="over">
+        <div error="over" x-text="`Ooops! You've gone ` + (total - 24) + ` hours over a possible day.` "></div>
+    </template>
+    <template x-if="under">
+        <div error="under" x-text="`Ooops! You need ` + (24 - total) + ` more hours to complete your day.` "></div>
+    </template>
 </body>
 </html>
