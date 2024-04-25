@@ -3,6 +3,10 @@
 <head>
   <title>How I Spend My Day</title>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <meta
+    name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
   <style>
     :root {
       --hours: 1
@@ -104,7 +108,7 @@
             other: blocks.reduce((acc, block) => block.key === 'other' ? acc + parseFloat(block.hours) : acc, 0)
         }
     " class="p-4 grid content-center bg-stone-100">
-  <ul legend class="inline-flex mx-auto my-4 w-auto gap-8 whitespace-nowrap">
+  <ul legend class="inline-flex justify-center flex-wrap mx-auto my-4 w-auto gap-2 sm:gap-8 whitespace-nowrap">
     <template x-for="(color, key) in colors">
       <li class="inline-flex gap-2 items-center">
         <span x-bind:class="color" class="w-4 h-4 inline-block"></span>
@@ -114,33 +118,33 @@
   </ul>
 
   <div chart class="bg-orange-100 p-8">
-    <ol labels class="text-center inline-flex w-full relative mb-4">
+    <ol labels class="text-sm sm:text-base text-center inline-flex w-full relative mb-4">
       <li class="-translate-x-1/2">12<div class="bg-orange-100">AM</div>
       </li>
-      <li class="-translate-x-1/2">1</li>
-      <li class="-translate-x-1/2">2</li>
-      <li class="-translate-x-1/2">3</li>
-      <li class="-translate-x-1/2">4</li>
-      <li class="-translate-x-1/2">5</li>
-      <li class="-translate-x-1/2">6</li>
-      <li class="-translate-x-1/2">7</li>
-      <li class="-translate-x-1/2">8</li>
-      <li class="-translate-x-1/2">9</li>
-      <li class="-translate-x-1/2">10</li>
-      <li class="-translate-x-1/2">11</li>
-      <li class="-translate-x-1/2">12<div class="bg-orange-100">PM</div>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">1</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">2</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">3</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">4</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">5</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">6</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">7</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">8</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">9</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">10</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">11</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">12<div class="bg-orange-100 text-sha">PM</div>
       </li>
-      <li class="-translate-x-1/2">1</li>
-      <li class="-translate-x-1/2">2</li>
-      <li class="-translate-x-1/2">3</li>
-      <li class="-translate-x-1/2">4</li>
-      <li class="-translate-x-1/2">5</li>
-      <li class="-translate-x-1/2">6</li>
-      <li class="-translate-x-1/2">7</li>
-      <li class="-translate-x-1/2">8</li>
-      <li class="-translate-x-1/2">9</li>
-      <li class="-translate-x-1/2">10</li>
-      <li class="-translate-x-1/2">11</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">1</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">2</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">3</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">4</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">5</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">6</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">7</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">8</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">9</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">10</li>
+      <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">11</li>
     </ol>
 
     <ul data class="inline-flex w-full min-h-8 relative">
@@ -178,7 +182,7 @@
           </svg>
           <h3 class="font-medium text-lg">How I Spend My Day</h3>
         </header>
-        <section class="py-4 grid grid-cols-2 gap-x-6">
+        <section class="py-4 grid sm:grid-cols-2 gap-x-6">
           <template x-for="(color, key) in colors">
             <div class="flex items-center py-3">
               <span class="w-8 h-8 shrink-0 mr-4 rounded-full bg-blue-50 flex items-center justify-center">
