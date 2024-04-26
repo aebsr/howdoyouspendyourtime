@@ -34,79 +34,139 @@
       bottom: 0.5rem;
     }
 
+    [type="number"]::-webkit-inner-spin-button,
+    [type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    [type="number"] {
+        -moz-appearance: textfield;
+    }
+
     script { display: none; /* Hide script tags for local dev */ }
   </style>
 </head>
 
-<body x-init="
-        colors = {
-            sleep: 'bg-indigo-200',
-            creative: 'bg-rose-500',
-            admin: 'bg-sky-400',
-            leisure: 'bg-violet-400',
-            wellness: 'bg-orange-300',
-            other: 'bg-cyan-700'
-        }
+<body
+  x-data="
+    {
+      editing: true,
+      hours: null,
+      blocks: null,
+      error: false,
+      totalHours: 0,
+      over: false,
+      under: false,
+      total: 0
+    }"
+  x-init="
+      colors = {
+          sleep: 'bg-indigo-200',
+          creative: 'bg-rose-500',
+          admin: 'bg-sky-400',
+          leisure: 'bg-violet-400',
+          wellness: 'bg-orange-300',
+          other: 'bg-cyan-700'
+      }
 
-        blockLabels = {
-            sleep: 'Sleep / Rest',
-            creative: 'Creative Work',
-            admin: 'Job / School',
-            leisure: 'Food / Leisure',
-            wellness: 'Wellness / Exercise',
-            other: 'Other / Misc'
-        }
+      blockLabels = {
+          sleep: 'Sleep / Rest',
+          creative: 'Creative Work',
+          admin: 'Job / School',
+          leisure: 'Food / Leisure',
+          wellness: 'Wellness / Exercise',
+          other: 'Other / Misc'
+      }
 
-        url = new URLSearchParams(window.location.search);
-        name = url.get('name');
-        hours = url.get('hours');
-        blocks = hours.split(',').map((hour) => {
-            key = hour.slice(0, 1);
-            switch (key) {
-                case 's':
-                    key = 'sleep';
-                    break;
-                case 'c':
-                    key = 'creative';
-                    break;
-                case 'a':
-                    key = 'admin';
-                    break;
-                case 'l':
-                    key = 'leisure';
-                    break;
-                case 'w':
-                    key = 'wellness';
-                    break;
-                case 'o':
-                    key = 'other';
-                    break;
-            }
-            return {
-                key,
-                hours: hour.slice(1)
-            }
-        });
+      url = new URLSearchParams(window.location.search);
 
-        total = blocks.reduce((acc, block) => acc + parseFloat(block.hours), 0);
-        over = total > 24;
-        under = total < 24;
+      name = url.get('name') || '';
+      hours = url.get('hours') || '';
+      blocks = hours.split(',').map((hour) => {
+          key = hour.slice(0, 1);
+          switch (key) {
+              default:
+              case 's':
+                  key = 'sleep';
+                  break;
+              case 'c':
+                  key = 'creative';
+                  break;
+              case 'a':
+                  key = 'admin';
+                  break;
+              case 'l':
+                  key = 'leisure';
+                  break;
+              case 'w':
+                  key = 'wellness';
+                  break;
+              case 'o':
+                  key = 'other';
+                  break;
+          }
+          return {
+              key,
+              hours: hour.slice(1)
+          }
+      });
+
+      totalHours = blocks.reduce((acc, block) => acc + parseFloat(block.hours), 0);
+      
+      editing = isNaN(totalHours);
+
+      updateUrl = () => {
+          const params = new URLSearchParams();
+          params.set('name', name);
+          params.set('hours', blocks.map(block => block.key[0] + block.hours).join(','));
+          window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+      }
+
+      saveChanges = () => {
+          updateUrl();
+          editing = false;
+          navigator.clipboard.writeText(window.location.href);
+      }
+
+      validate = () => {
+        totalHours = blocks.reduce((acc, block) => acc + parseFloat(block.hours), 0);
+        over = totalHours > 24;
+        under = totalHours < 24;
         error = over || under;
 
-        if (error) {
-            errorMessage = over ? 'You have more than 24 hours in your day. Please check your input.' : 'You have less than 24 hours in your day. Please check your input.';
-        }
-
         total = {
-            sleep: blocks.reduce((acc, block) => block.key === 'sleep' ? acc + parseFloat(block.hours) : acc, 0),
-            creative: blocks.reduce((acc, block) => block.key === 'creative' ? acc + parseFloat(block.hours) : acc, 0),
-            admin: blocks.reduce((acc, block) => block.key === 'admin' ? acc + parseFloat(block.hours) : acc, 0),
-            leisure: blocks.reduce((acc, block) => block.key === 'leisure' ? acc + parseFloat(block.hours) : acc, 0),
-            wellness: blocks.reduce((acc, block) => block.key === 'wellness' ? acc + parseFloat(block.hours) : acc, 0),
-            other: blocks.reduce((acc, block) => block.key === 'other' ? acc + parseFloat(block.hours) : acc, 0)
+          sleep: blocks.reduce((acc, block) => block.key === 'sleep' ? acc + parseFloat(block.hours) : acc, 0),
+          creative: blocks.reduce((acc, block) => block.key === 'creative' ? acc + parseFloat(block.hours) : acc, 0),
+          admin: blocks.reduce((acc, block) => block.key === 'admin' ? acc + parseFloat(block.hours) : acc, 0),
+          leisure: blocks.reduce((acc, block) => block.key === 'leisure' ? acc + parseFloat(block.hours) : acc, 0),
+          wellness: blocks.reduce((acc, block) => block.key === 'wellness' ? acc + parseFloat(block.hours) : acc, 0),
+          other: blocks.reduce((acc, block) => block.key === 'other' ? acc + parseFloat(block.hours) : acc, 0)
+      }
+
+        if (error) {
+          errorMessage = over ? 'You have more than 24 hours in your day. Please check your input.' : 'You have less than 24 hours in your day. Please check your input.';
         }
+      }
+
+      validate()
+
+      removeBlock = (index) => {
+        blocks.splice(index, 1);
+        validate();
+        updateUrl();
+      }
+
+      addBlock = (index) => {
+        blocks.splice(index + 1, 0, { key: 'sleep', hours: 1 });
+        validate();
+        updateUrl();
+      }
+
+      $watch('blocks', (value, oldValue) => {
+        validate();
+      })
     "
-    class="grid bg-stone-100 items-start"
+    class="grid bg-stone-100 items-start min-h-screen"
   >
   <header
     x-data="
@@ -185,7 +245,7 @@
         </template>
       </ul>
   
-      <div chart class="bg-orange-100 p-8 w-full max-w-7xl mx-auto shadow-md relative z-10">
+      <div chart class="sticky top-16 bg-orange-100 p-8 w-full max-w-7xl mx-auto shadow-md z-10">
         <ol labels class="text-sm sm:text-base text-center inline-flex w-full relative mb-4">
           <li class="-translate-x-1/2">12<div class="bg-orange-100">AM</div>
           </li>
@@ -212,27 +272,32 @@
             </template>
           </ol>
           <template x-if="over">
-            <li
-              class="bg-red-600 text-white font-bold absolute top-0 right-0 rounded-full w-8 h-8 grid place-content-center translate-x-1/2 -translate-y-1/2 z-20">
-              !</li>
+            <li class="bg-red-600 text-white font-bold absolute top-0 right-0 rounded-full w-8 h-8 grid place-content-center translate-x-1/2 -translate-y-1/2 z-20">!</li>
           </template>
         </ul>
       </div>
   
       <section class="w-11/12 p-6 rounded-b-lg max-w-2xl shadow-lg shadow-gray-300 bg-white mx-auto">
-        <template x-if="!error">
+        <template x-if="!error && !editing">
           <div class="border-b border-gray-100">
-            <header class="flex justify-center items-center border-b border-gray-100 pb-4">
+            <header class="flex gap-4 justify-center items-center border-b border-gray-100 pb-4">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                stroke="currentColor" class="w-6 h-6 mr-4">
+                stroke="currentColor" class="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
               </svg>
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M4 19l16 0"></path>
-              <path d="M4 15l4 -6l4 2l4 -5l4 4"></path>
-              </svg>
               <h3 class="font-medium text-lg">How I Spend My Day</h3>
+              <button
+                type="button"
+                class="bg-slate-400 text-white hover:bg-slate-600 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium gap-2 rounded-full text-sm px-2.5 py-1 text-center inline-flex items-center"
+                @click="editing = true"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-white" fill="none">
+                  <path d="M16.2141 4.98239L17.6158 3.58063C18.39 2.80646 19.6452 2.80646 20.4194 3.58063C21.1935 4.3548 21.1935 5.60998 20.4194 6.38415L19.0176 7.78591M16.2141 4.98239L10.9802 10.2163C9.93493 11.2616 9.41226 11.7842 9.05637 12.4211C8.70047 13.058 8.3424 14.5619 8 16C9.43809 15.6576 10.942 15.2995 11.5789 14.9436C12.2158 14.5877 12.7384 14.0651 13.7837 13.0198L19.0176 7.78591M16.2141 4.98239L19.0176 7.78591" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M21 12C21 16.2426 21 18.364 19.682 19.682C18.364 21 16.2426 21 12 21C7.75736 21 5.63604 21 4.31802 19.682C3 18.364 3 16.2426 3 12C3 7.75736 3 5.63604 4.31802 4.31802C5.63604 3 7.75736 3 12 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                Edit
+              </button>
             </header>
             <section class="py-4 grid sm:grid-cols-2 gap-x-6">
               <template x-for="(color, key) in colors">
@@ -345,9 +410,71 @@
                   </div>
                 </div>
               </template>
+            </section>
           </div>
-      </section>
-      </template>
+        </template>
+        <template x-if="editing">
+          <div class="mb-4 relative">
+            <div class="border-b border-gray-100">
+            <header class="flex gap-4 justify-center items-center border-b border-gray-100 pb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                stroke="currentColor" class="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+              </svg>
+              <h3 class="font-medium text-lg">How Do You Spend Your Day?</h3>
+            </header>
+            <ul class="grid gap-2">
+              <template x-for="(item, index) in blocks">
+                <li class="space-x-3 flex items-center">
+                  <div class="flex-1">
+                    <div class="relative">
+                      <input
+                        required
+                        x-model="item.hours"
+                        type="number"
+                        min="0"
+                        max="24"
+                        step="0.25"
+                        placeholder="0"
+                        class="py-3 px-10 ps-20 block w-full shadow-sm rounded-lg text-sm focus:z-10 text-right border-2 border-stone-100 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none">
+                      <div class="absolute inset-y-0 start-0 flex items-center text-gray-500 ps-px">
+                        <label for="hs-inline-leading-select-country" class="sr-only">Country</label>
+                        <select class="block w-full border-transparent rounded-lg focus:ring-blue-600 focus:border-blue-600 px-4" x-model="item.key">
+                          <template x-for="(color, key) in colors">
+                            <option x-bind:selected="item.key == key" x-bind:value="key" x-text="blockLabels[key]">
+                          </template>
+                        </select>
+                      </div>
+                      <span class="absolute right-4 top-0 bottom-0 grid content-center text-sm text-gray-500">hrs</span>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button x-bind:disabled="blocks.length == 1" @click="removeBlock(index)" class="disabled:text-gray-300 disabled:pointer-events-none text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
+                        <path d="M16 12L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
+                    </svg>
+                    </button>
+                    <button @click="addBlock(index)" class="p-2 text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
+                      <path d="M12 8V16M16 12L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
+                  </svg></button>
+                  </div>
+                </li>
+              </template>
+            </ul>
+
+            <div class="w-full h-0 max-w-2xl absolute left-1/2 top-1/2 -translate-x-1/2 text-right">
+              <button @click="saveChanges" x-bind:disabled="error" class="translate-x-full -translate-y-1/2 -mr-6 disabled:pointer-events-none transition-all disabled:bg-gray-200 bg-emerald-500 p-4 pl-1 hover:pl-4 hover:bg-emerald-600 rounded-r-full">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="text-white" fill="none">
+                <path d="M8 22V19C8 17.1144 8 16.1716 8.58579 15.5858C9.17157 15 10.1144 15 12 15C13.8856 15 14.8284 15 15.4142 15.5858C16 16.1716 16 17.1144 16 19V22" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                <path d="M10 7H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M3 11.8584C3 7.28199 3 4.99376 4.38674 3.54394C4.43797 3.49038 4.49038 3.43797 4.54394 3.38674C5.99376 2 8.28199 2 12.8584 2C13.943 2 14.4655 2.00376 14.9628 2.18936C15.4417 2.3681 15.8429 2.70239 16.6452 3.37099L18.8411 5.20092C19.9027 6.08561 20.4335 6.52795 20.7168 7.13266C21 7.73737 21 8.42833 21 9.81025V13C21 16.7497 21 18.6246 20.0451 19.9389C19.7367 20.3634 19.3634 20.7367 18.9389 21.0451C17.6246 22 15.7497 22 12 22C8.25027 22 6.3754 22 5.06107 21.0451C4.6366 20.7367 4.26331 20.3634 3.95491 19.9389C3 18.6246 3 16.7497 3 13V11.8584Z" stroke="currentColor" stroke-width="1.5" />
+              </svg></button>
+            </div>
+          </div>
+        </template>
       </div>
       <footer class="pt-4">
         <p class="text-sm text-gray-500 text-center">Reluctantly made by <a class="font-bold"
