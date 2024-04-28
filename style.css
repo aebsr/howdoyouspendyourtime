@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --hours: 1
+  }
+  [x-cloak] { display: none !important; }
+
+  [chart] ol li {
+    width: calc(var(--hours) / 24 * 100%);
+  }
+
+  [labels]:after {
+    content: '12';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(50%);
+  }
+
+  [labels]:before {
+    content: '';
+    width: 100%;
+    height: 0;
+    border-bottom: 1px solid;
+    position: absolute;
+    bottom: 0.5rem;
+  }
+
+  [type="number"]::-webkit-inner-spin-button,
+  [type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }
+  [type="number"] {
+      -moz-appearance: textfield;
+  }
+
+  script { display: none; /* Hide script tags for local dev */ }

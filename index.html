@@ -1,81 +1,58 @@
 <html>
 
 <head>
-  <title>How I Spend My Day</title>
+  <title>How Do You Spend Your Day</title>
+  <meta charset="utf-8" />
+  <meta name="description" content="A simple little app that lets you visualize how you spend your day.">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <meta
     name="viewport"
     content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
   />
-  <style>
-    :root {
-      --hours: 1
-    }
-
-    [chart] ol li {
-      width: calc(var(--hours) / 24 * 100%);
-    }
-
-    [labels]:after {
-      content: '12';
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      transform: translateX(50%);
-    }
-
-    [labels]:before {
-      content: '';
-      width: 100%;
-      height: 0;
-      border-bottom: 1px solid;
-      position: absolute;
-      bottom: 0.5rem;
-    }
-
-    [type="number"]::-webkit-inner-spin-button,
-    [type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    [type="number"] {
-        -moz-appearance: textfield;
-    }
-
-    script { display: none; /* Hide script tags for local dev */ }
-  </style>
+  <link rel="stylesheet" href="./output.css" />
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7MSVEQPJ4Q"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7MSVEQPJ4Q');
+</script>
 
 <body
   x-data="
     {
       editing: true,
+      name: '',
       hours: null,
       blocks: null,
       error: false,
       totalHours: 0,
       over: false,
       under: false,
-      total: 0
+      total: 0,
+      errorMessage: '',
+      sparkle: false
     }"
   x-init="
       colors = {
-          sleep: 'bg-indigo-200',
-          creative: 'bg-rose-500',
-          admin: 'bg-sky-400',
-          leisure: 'bg-violet-400',
-          wellness: 'bg-orange-300',
-          other: 'bg-cyan-700'
+        sleep: 'bg-indigo-200',
+        creative: 'bg-rose-500',
+        admin: 'bg-sky-400',
+        leisure: 'bg-violet-400',
+        wellness: 'bg-orange-300',
+        other: 'bg-cyan-700'
       }
 
       blockLabels = {
-          sleep: 'Sleep / Rest',
-          creative: 'Creative Work',
-          admin: 'Job / School',
-          leisure: 'Food / Leisure',
-          wellness: 'Wellness / Exercise',
-          other: 'Other / Misc'
+        sleep: 'Sleep / Rest',
+        creative: 'Creative Work',
+        admin: 'Job / School',
+        leisure: 'Food / Leisure',
+        wellness: 'Wellness / Exercise',
+        other: 'Other / Misc'
       }
 
       url = new URLSearchParams(window.location.search);
@@ -83,32 +60,32 @@
       name = url.get('name') || '';
       hours = url.get('hours') || '';
       blocks = hours.split(',').map((hour) => {
-          key = hour.slice(0, 1);
-          switch (key) {
-              default:
-              case 's':
-                  key = 'sleep';
-                  break;
-              case 'c':
-                  key = 'creative';
-                  break;
-              case 'a':
-                  key = 'admin';
-                  break;
-              case 'l':
-                  key = 'leisure';
-                  break;
-              case 'w':
-                  key = 'wellness';
-                  break;
-              case 'o':
-                  key = 'other';
-                  break;
-          }
-          return {
-              key,
-              hours: hour.slice(1)
-          }
+        key = hour.slice(0, 1);
+        switch (key) {
+          default:
+          case 's':
+            key = 'sleep';
+            break;
+          case 'c':
+            key = 'creative';
+            break;
+          case 'a':
+            key = 'admin';
+            break;
+          case 'l':
+            key = 'leisure';
+            break;
+          case 'w':
+            key = 'wellness';
+            break;
+          case 'o':
+            key = 'other';
+            break;
+        }
+        return {
+          key,
+          hours: hour.slice(1)
+        }
       });
 
       totalHours = blocks.reduce((acc, block) => acc + parseFloat(block.hours), 0);
@@ -132,7 +109,7 @@
         totalHours = blocks.reduce((acc, block) => acc + parseFloat(block.hours), 0);
         over = totalHours > 24;
         under = totalHours < 24;
-        error = over || under;
+        error = over || under || !totalHours;
 
         total = {
           sleep: blocks.reduce((acc, block) => block.key === 'sleep' ? acc + parseFloat(block.hours) : acc, 0),
@@ -141,102 +118,119 @@
           leisure: blocks.reduce((acc, block) => block.key === 'leisure' ? acc + parseFloat(block.hours) : acc, 0),
           wellness: blocks.reduce((acc, block) => block.key === 'wellness' ? acc + parseFloat(block.hours) : acc, 0),
           other: blocks.reduce((acc, block) => block.key === 'other' ? acc + parseFloat(block.hours) : acc, 0)
-      }
+        }
 
         if (error) {
+          editing = true;
           errorMessage = over ? 'You have more than 24 hours in your day. Please check your input.' : 'You have less than 24 hours in your day. Please check your input.';
         }
       }
 
-      validate()
+      doSparkle = (state = true) => {
+        setTimeout(() => {
+          sparkle = state
+        }, 300)
+      }
 
       removeBlock = (index) => {
         blocks.splice(index, 1);
-        validate();
-        updateUrl();
       }
 
       addBlock = (index) => {
-        blocks.splice(index + 1, 0, { key: 'sleep', hours: 1 });
-        validate();
-        updateUrl();
+        prevBlock = blocks[index];
+        key = prevBlock.key || 'sleep';
+        blocks.splice(index + 1, 0, { key, hours: 1 });
+        setTimeout(() => {
+          document.querySelector(`[id='hours-${index + 2}']`).focus();
+        }, 100)
       }
+
+      validate()
+      doSparkle()
 
       $watch('blocks', (value, oldValue) => {
         validate();
       })
+
+      $watch('editing', (value, oldValue) => {
+        doSparkle(oldValue)
+      })
+
+      
     "
     class="grid bg-stone-100 items-start min-h-screen"
   >
-  <header
-    x-data="
-      {
-      navbarOpen: false
-      }
-    "
-    class="flex items-center w-full bg-slate-700 text-white sticky top-0 left-0 z-20"
-    >
-    <div class="w-full max-w-7xl mx-auto">
-        <div class="relative flex items-center justify-between">
-          <div class="max-w-full px-4 w-60">
-              <a href="javascript:void(0)" class="grid grid-flow-col items-center whitespace-nowrap w-full py-5 sm:text-lg font-bold gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" class="text-yellow-300" fill="none">
-                  <path d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z" stroke="currentColor" stroke-width="1.5" />
-                  <path d="M12 2V3.5M12 20.5V22M19.0708 19.0713L18.0101 18.0106M5.98926 5.98926L4.9286 4.9286M22 12H20.5M3.5 12H2M19.0713 4.92871L18.0106 5.98937M5.98975 18.0107L4.92909 19.0714" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                </svg>
-                How Do You Spend Your Day?
-              </a>
-          </div>
-          <div class="flex items-center justify-between px-4">
-              <div>
-                <button
-                    @click="navbarOpen = !navbarOpen"
-                    :class="navbarOpen && 'navbarTogglerActive' "
-                    id="navbarToggler"
-                    class="absolute right-4 top-1/2 block -translate-y-1/2 rounded-lg px-3 py-[6px] ring-yellow-400 focus:ring-2 sm:hidden"
-                    ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="text-white" fill="none">
-                      <path d="M4 5L20 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                      <path d="M4 12L20 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                      <path d="M4 19L20 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <header
+      x-data="
+        {
+        navbarOpen: false
+        }
+      "
+      class="flex items-center w-full bg-slate-700 text-white sticky top-0 left-0 z-20"
+      >
+      <div class="w-full max-w-7xl mx-auto">
+          <div class="relative flex items-center justify-between">
+            <div class="max-w-full px-4 w-60">
+                <a href="javascript:void(0)" class="grid grid-flow-col items-center whitespace-nowrap w-full py-5 sm:text-lg font-bold gap-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" class="text-yellow-300" fill="none">
+                    <path d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M12 2V3.5M12 20.5V22M19.0708 19.0713L18.0101 18.0106M5.98926 5.98926L4.9286 4.9286M22 12H20.5M3.5 12H2M19.0713 4.92871L18.0106 5.98937M5.98975 18.0107L4.92909 19.0714" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                   </svg>
-                </button>
-                <nav
-                    :class="!navbarOpen && 'hidden' "
-                    id="navbarCollapse"
-                    class="absolute right-4 top-full w-full max-w-[250px] rounded-b-lg bg-white text-black sm:text-white py-5 px-6 shadow sm:static sm:block sm:w-full sm:max-w-full sm:shadow-none dark:bg-dark-2 sm:dark:bg-transparent"
-                    >
-                    <ul class="block sm:flex">
-                      <li>
-                          <a
-                            href="http://rabidlogic.com/how-do-you-spend-your-day/"
-                            class="flex py-2 text-base font-medium text-body-color hover:text-yellow-600 sm:hover:text-yellow-300 sm:ml-12 sm:inline-flex"
-                            >
-                            About Your Day
-                          </a>
-                      </li>
-                    </ul>
-                </nav>
-              </div>
-              <!-- <div class="justify-end hidden pr-16 sm:flex sm:pr-0">
-                <a
-                    href="javascript:void(0)"
-                    class="py-3 text-base font-medium px-7 text-dark dark:text-white hover:text-primary"
-                    >
-                Login
+                  How Do You Spend Your Day?
                 </a>
-                <a
-                    href="javascript:void(0)"
-                    class="py-3 text-base font-medium text-white rounded-md bg-primary px-7 hover:bg-primary/90"
-                    >
-                Sign Up
-                </a>
-              </div> -->
+            </div>
+            <div class="flex items-center justify-between px-4">
+                <div>
+                  <button
+                      @click="navbarOpen = !navbarOpen"
+                      :class="navbarOpen && 'navbarTogglerActive' "
+                      id="navbarToggler"
+                      class="absolute right-4 top-1/2 block -translate-y-1/2 rounded-lg px-3 py-[6px] ring-yellow-400 focus:ring-2 sm:hidden"
+                      ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="text-white" fill="none">
+                        <path d="M4 5L20 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4 12L20 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4 19L20 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                  <nav
+                      :class="!navbarOpen && 'hidden' "
+                      id="navbarCollapse"
+                      class="absolute right-4 top-full w-full max-w-[250px] rounded-b-lg bg-white text-black sm:text-white py-5 px-6 shadow sm:static sm:block sm:w-full sm:max-w-full sm:shadow-none dark:bg-dark-2 sm:dark:bg-transparent"
+                      >
+                      <ul class="block sm:flex">
+                        <li>
+                            <a
+                              href="http://rabidlogic.com/how-do-you-spend-your-day/"
+                              class="flex py-2 text-base font-medium text-body-color hover:text-yellow-600 sm:hover:text-yellow-300 sm:ml-12 sm:inline-flex"
+                              >
+                              About Your Day
+                            </a>
+                        </li>
+                      </ul>
+                  </nav>
+                </div>
+                <!-- <div class="justify-end hidden pr-16 sm:flex sm:pr-0">
+                  <a
+                      href="javascript:void(0)"
+                      class="py-3 text-base font-medium px-7 text-dark dark:text-white hover:text-primary"
+                      >
+                  Login
+                  </a>
+                  <a
+                      href="javascript:void(0)"
+                      class="py-3 text-base font-medium text-white rounded-md bg-primary px-7 hover:bg-primary/90"
+                      >
+                  Sign Up
+                  </a>
+                </div> -->
+            </div>
           </div>
-        </div>
-    </div>
-  </header>
-    <main class="p-4 grid content-center">
-      <ul legend class="inline-flex justify-center flex-wrap mx-auto my-4 w-auto gap-2 sm:gap-8 whitespace-nowrap">
+      </div>
+    </header>
+    <main x-cloak class="p-4 grid content-center">
+      
+      <!-- START: Legend -->
+      <ul class="inline-flex justify-center flex-wrap mx-auto my-4 w-auto gap-2 sm:gap-8 whitespace-nowrap">
         <template x-for="(color, key) in colors">
           <li class="inline-flex gap-2 items-center">
             <span x-bind:class="color" class="w-4 h-4 inline-block"></span>
@@ -244,24 +238,26 @@
           </li>
         </template>
       </ul>
+      <!-- END: Legend -->
   
+      <!-- START: Chart -->
       <div chart class="sticky top-16 bg-orange-100 p-8 w-full max-w-7xl mx-auto shadow-md z-10">
         <ol labels class="text-sm sm:text-base text-center inline-flex w-full relative mb-4">
           <li class="-translate-x-1/2">12<div class="bg-orange-100">AM</div>
           </li>
           <template x-for="i in 11">
-            <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100" x-text="i"></li>
+            <li class="-translate-x-1/2 odd:opacity-0 sm:odd:opacity-100" x-text="i"></li>
           </template>
-          <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100">12<div class="bg-orange-100 text-sha">PM</div>
+          <li class="-translate-x-1/2 odd:opacity-0 sm:odd:opacity-100">12<div class="bg-orange-100">PM</div>
           </li>
           <template x-for="i in 11">
             <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100" x-text="i"></li>
           </template>
         </ol>
   
-        <ul data class="inline-flex w-full min-h-8 relative">
+        <ul class="inline-flex w-full min-h-8 relative">
           <li x-text="name" class="absolute z-20 inset-y-0 content-center p-2"></li>
-          <ol data class="inline-flex w-full min-h-8 relative relative z-10">
+          <ol class="inline-flex w-full min-h-8 relative z-10">
             <template x-for="block in blocks">
               <li x-bind:class="colors[block.key]" :style="'--hours:' + block.hours"
                 class="group cursor-help relative hover:scale-110 transform transition-all duration-500 hover:shadow-md hover:z-20">
@@ -276,10 +272,16 @@
           </template>
         </ul>
       </div>
+      <!-- END: Chart -->
   
-      <section class="w-11/12 p-6 rounded-b-lg max-w-2xl shadow-lg shadow-gray-300 bg-white mx-auto">
+      <section class="w-11/12 p-6 rounded-b-lg max-w-2xl shadow-lg shadow-gray-300 bg-white mx-auto transition-all max-h-min">
         <template x-if="!error && !editing">
-          <div class="border-b border-gray-100">
+          <div
+            x-show="!error && !editing"
+            class="border-b border-gray-100 mb-4 transition-all"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end=opacity-100"
+          >
             <header class="flex gap-4 justify-center items-center border-b border-gray-100 pb-4">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
                 stroke="currentColor" class="w-6 h-6">
@@ -399,13 +401,30 @@
                   </span>
                   <div class="space-y-3 flex-1">
                     <div class="flex items-center">
-                      <h4 class="font-medium text-sm mr-auto text-gray-700 flex items-center" x-text="blockLabels[key]">
+                      <h4 class="font-medium text-sm mr-auto text-gray-700 flex gap-2 items-center">
+                        <span x-text="blockLabels[key]"></span>
+                        <!-- <div tabindex="1" class="relative group inline-flex rounded-full">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-gray-400" fill="none">
+                            <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
+                            <path d="M12.2422 17V12C12.2422 11.5286 12.2422 11.2929 12.0957 11.1464C11.9493 11 11.7136 11 11.2422 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M11.992 8H12.001" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                          <div class="transition-all max-w-64 absolute w-max bottom-6 left-1/2 -translate-x-1/2 py-2 px-4 rounded-md bg-slate-600 text-white text-xs opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 group-hover:delay-0 group-focus:opacity-100 group-focus:translate-y-0 group-focus:delay-0 delay-300">
+                            <p class="text-xs text-gray-300">Click to edit</p>
+                          </div>
+                        </div> -->
                       </h4>
                       <span class="px-2 py-1 rounded-lg bg-sky-50 text-sky-700 text-xs" x-text="total[key]"></span>
                     </div>
                     <div class="overflow-hidden bg-blue-50 h-1.5 rounded-full w-full">
-                      <span class="h-full bg-blue-500 w-full block rounded-full" x-bind:class="color"
-                        x-bind:style="'width:' + (total[key] / 24) * 100 + '%'"></span>
+                      <span
+                        x-show="sparkle"
+                        x-bind:class="color"
+                        x-bind:style="'width:' + (total[key] / 24) * 100 + '%'"
+                        class="h-full bg-blue-500 block rounded-full transition-all duration-500 origin-left"
+                        x-transition:enter-start="scale-x-0"
+                        x-transition:enter-end="scale-x-100"
+                      ></span>
                     </div>
                   </div>
                 </div>
@@ -424,11 +443,31 @@
               </svg>
               <h3 class="font-medium text-lg">How Do You Spend Your Day?</h3>
             </header>
-            <ul class="grid gap-2">
+            <ul class="grid gap-2 my-6">
+              <li>
+                <label for="name" class="sr-only">Your Name</label>
+                <input
+                  x-model="name"
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="py-3 px-5 block w-full shadow-sm rounded-lg text-md focus:z-10 border-2 border-stone-100 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                  placeholder="e.g. Samantha Smith"
+                >
+              </li>
               <template x-for="(item, index) in blocks">
                 <li class="space-x-3 flex items-center">
                   <div class="flex-1">
-                    <div class="relative">
+                    <div class="relative" x-id="['block-type', 'hours']">
+                      <div class="absolute inset-y-0 start-0 flex items-center text-gray-500 ps-px">
+                        <label :for="$id('block-type')" class="sr-only">Time Category</label>
+                        <select :id="$id('block-type')" class="block bg-transparent h-full w-full border-transparent rounded-lg focus:ring-blue-600 focus:border-blue-600 px-4" x-model="item.key">
+                          <template x-for="(color, key) in colors">
+                            <option x-bind:selected="item.key == key" x-bind:value="key" x-text="blockLabels[key]">
+                          </template>
+                        </select>
+                      </div>
+                      <label :for="$id('hours')" class="sr-only">Hours</label>
                       <input
                         required
                         x-model="item.hours"
@@ -437,58 +476,69 @@
                         max="24"
                         step="0.25"
                         placeholder="0"
+                        :id="$id('hours')"
+                        :name="$id('hours')"
                         class="py-3 px-10 ps-20 block w-full shadow-sm rounded-lg text-sm focus:z-10 text-right border-2 border-stone-100 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none">
-                      <div class="absolute inset-y-0 start-0 flex items-center text-gray-500 ps-px">
-                        <label for="hs-inline-leading-select-country" class="sr-only">Country</label>
-                        <select class="block w-full border-transparent rounded-lg focus:ring-blue-600 focus:border-blue-600 px-4" x-model="item.key">
-                          <template x-for="(color, key) in colors">
-                            <option x-bind:selected="item.key == key" x-bind:value="key" x-text="blockLabels[key]">
-                          </template>
-                        </select>
-                      </div>
                       <span class="absolute right-4 top-0 bottom-0 grid content-center text-sm text-gray-500">hrs</span>
                     </div>
                   </div>
                   <div class="flex gap-2">
-                    <button x-bind:disabled="blocks.length == 1" @click="removeBlock(index)" class="disabled:text-gray-300 disabled:pointer-events-none text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
-                        <path d="M16 12L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
-                    </svg>
-                    </button>
                     <button @click="addBlock(index)" class="p-2 text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
                       <path d="M12 8V16M16 12L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                       <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
-                  </svg></button>
+                    </svg></button>
+                    <button x-bind:disabled="blocks.length == 1" @click="removeBlock(index)" class="disabled:text-gray-300 disabled:pointer-events-none text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700 p-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" color="#000000" fill="none">
+                        <path d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M9.5 16.5L9.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M14.5 16.5L14.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                      </svg>
+                    </button>
                   </div>
                 </li>
               </template>
             </ul>
 
-            <div class="w-full h-0 max-w-2xl absolute left-1/2 top-1/2 -translate-x-1/2 text-right">
-              <button @click="saveChanges" x-bind:disabled="error" class="translate-x-full -translate-y-1/2 -mr-6 disabled:pointer-events-none transition-all disabled:bg-gray-200 bg-emerald-500 p-4 pl-1 hover:pl-4 hover:bg-emerald-600 rounded-r-full">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" class="text-white" fill="none">
-                <path d="M8 22V19C8 17.1144 8 16.1716 8.58579 15.5858C9.17157 15 10.1144 15 12 15C13.8856 15 14.8284 15 15.4142 15.5858C16 16.1716 16 17.1144 16 19V22" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-                <path d="M10 7H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                <path d="M3 11.8584C3 7.28199 3 4.99376 4.38674 3.54394C4.43797 3.49038 4.49038 3.43797 4.54394 3.38674C5.99376 2 8.28199 2 12.8584 2C13.943 2 14.4655 2.00376 14.9628 2.18936C15.4417 2.3681 15.8429 2.70239 16.6452 3.37099L18.8411 5.20092C19.9027 6.08561 20.4335 6.52795 20.7168 7.13266C21 7.73737 21 8.42833 21 9.81025V13C21 16.7497 21 18.6246 20.0451 19.9389C19.7367 20.3634 19.3634 20.7367 18.9389 21.0451C17.6246 22 15.7497 22 12 22C8.25027 22 6.3754 22 5.06107 21.0451C4.6366 20.7367 4.26331 20.3634 3.95491 19.9389C3 18.6246 3 16.7497 3 13V11.8584Z" stroke="currentColor" stroke-width="1.5" />
-              </svg></button>
-            </div>
+            <button @click="saveChanges" x-bind:disabled="error" class="sticky bottom-4 min-h-8 disabled:pointer-events-none transition-all disabled:bg-gray-200 bg-emerald-500 px-4 py-2 hover:bg-emerald-600 rounded-md text-center w-full text-white">
+              Save
+            </button>
           </div>
         </template>
       </div>
-      <footer class="pt-4">
+      <footer>
         <p class="text-sm text-gray-500 text-center">Reluctantly made by <a class="font-bold"
             href="https://antoinebutler.com/">Antoine Butler</a></p>
       </footer>
       </section>
     </main>    
 
-  <template x-if="error">
-    <div error="over" x-text="errorMessage" class="fixed bg-red-700 p-4 bottom-4 left-4 rounded-lg block text-white">
+    <div
+      x-show="error"
+      x-text="errorMessage"
+      x-transition:enter-start="opacity-0 translate-y-full"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 translate-y-full"
+      class="fixed transition ease-out duration-300 bg-red-700 p-4 bottom-4 left-4 rounded-lg block text-white">
     </div>
-  </template>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-</body>
+    <template x-component="icon-sleep">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+        class="text-blue-500" fill="none">
+        <path
+          d="M13 2.04938C12.6711 2.01672 12.3375 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 11.3151 21.9311 10.6462 21.8 10"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          d="M10 11H8.70711C8.25435 11 7.82014 10.8201 7.5 10.5M14 11H15.2929C15.7456 11 16.1799 10.8201 16.5 10.5"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="12" cy="16" r="2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+        <path
+          d="M17 2H19.9474C20.5675 2 20.8775 2 20.9601 2.20009C21.0427 2.40019 20.8317 2.64023 20.4098 3.1203L17.9846 5.8797C17.5627 6.35977 17.3517 6.59981 17.4343 6.79991C17.5169 7 17.8269 7 18.447 7H21"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+  </template>
+  </body>
 
 </html>
