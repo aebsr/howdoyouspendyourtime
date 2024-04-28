@@ -26,7 +26,9 @@
     height: 0;
     border-bottom: 1px solid;
     position: absolute;
-    bottom: 0.5rem;
+    /* margin-top: 0.75rem; */
+    top: 100%;
+    @apply mt-2 sm:mt-3;
   }
 
   [type="number"]::-webkit-inner-spin-button,

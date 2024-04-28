@@ -11,7 +11,7 @@
   />
   <link rel="stylesheet" href="./output.css" />
 </head>
-<!-- Google tag (gtag.js) -->
+
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7MSVEQPJ4Q"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -158,7 +158,7 @@
 
       
     "
-    class="grid bg-stone-100 items-start min-h-screen"
+    class="grid bg-stone-100 items-start content-start sm:content-normal min-h-screen"
   >
     <header
       x-data="
@@ -170,14 +170,12 @@
       >
       <div class="w-full max-w-7xl mx-auto">
           <div class="relative flex items-center justify-between">
-            <div class="max-w-full px-4 w-60">
-                <a href="javascript:void(0)" class="grid grid-flow-col items-center whitespace-nowrap w-full py-5 sm:text-lg font-bold gap-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" class="text-yellow-300" fill="none">
-                    <path d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z" stroke="currentColor" stroke-width="1.5" />
-                    <path d="M12 2V3.5M12 20.5V22M19.0708 19.0713L18.0101 18.0106M5.98926 5.98926L4.9286 4.9286M22 12H20.5M3.5 12H2M19.0713 4.92871L18.0106 5.98937M5.98975 18.0107L4.92909 19.0714" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                  </svg>
-                  How Do You Spend Your Day?
-                </a>
+            <div class="max-w-full px-4 grid grid-flow-col items-center whitespace-nowrap py-5 sm:text-lg font-bold gap-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" class="text-yellow-300" fill="none">
+                <path d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z" stroke="currentColor" stroke-width="1.5" />
+                <path d="M12 2V3.5M12 20.5V22M19.0708 19.0713L18.0101 18.0106M5.98926 5.98926L4.9286 4.9286M22 12H20.5M3.5 12H2M19.0713 4.92871L18.0106 5.98937M5.98975 18.0107L4.92909 19.0714" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+              How Do You Spend Your Day?
             </div>
             <div class="flex items-center justify-between px-4">
                 <div>
@@ -227,10 +225,10 @@
           </div>
       </div>
     </header>
-    <main x-cloak class="p-4 grid content-center">
+    <main x-cloak class="sm:p-4 grid content-center">
       
       <!-- START: Legend -->
-      <ul class="inline-flex justify-center flex-wrap mx-auto my-4 w-auto gap-2 sm:gap-8 whitespace-nowrap">
+      <ul class="inline-flex justify-center flex-wrap mx-auto my-4 px-2 sm:px-0 w-auto gap-2 sm:gap-8 whitespace-nowrap">
         <template x-for="(color, key) in colors">
           <li class="inline-flex gap-2 items-center">
             <span x-bind:class="color" class="w-4 h-4 inline-block"></span>
@@ -243,34 +241,36 @@
       <!-- START: Chart -->
       <div chart class="sticky top-16 bg-orange-100 p-8 w-full max-w-7xl mx-auto shadow-md z-10">
         <ol labels class="text-sm sm:text-base text-center inline-flex w-full relative mb-4">
-          <li class="-translate-x-1/2">12<div class="bg-orange-100">AM</div>
+          <li class="-translate-x-1/2 w-fit relative">12<div class="bg-orange-100 w-min px-2 absolute left-1/2 -translate-x-1/2">AM</div>
           </li>
           <template x-for="i in 11">
-            <li class="-translate-x-1/2 odd:opacity-0 sm:odd:opacity-100" x-text="i"></li>
+            <li class="-translate-x-1/2 w-fit odd:opacity-0 sm:odd:opacity-100" x-text="i"></li>
           </template>
-          <li class="-translate-x-1/2 odd:opacity-0 sm:odd:opacity-100">12<div class="bg-orange-100">PM</div>
+          <li class="-translate-x-1/2 w-fit relative odd:opacity-0 sm:odd:opacity-100">12<div class="bg-orange-100 w-min px-2 absolute left-1/2 -translate-x-1/2">PM</div>
           </li>
           <template x-for="i in 11">
-            <li class="-translate-x-1/2 even:opacity-0 sm:even:opacity-100" x-text="i"></li>
+            <li class="-translate-x-1/2 w-fit even:opacity-0 sm:even:opacity-100" x-text="i"></li>
           </template>
         </ol>
   
-        <ul class="inline-flex w-full min-h-8 relative">
-          <li x-text="name" class="absolute z-20 inset-y-0 content-center p-2"></li>
-          <ol class="inline-flex w-full min-h-8 relative z-10">
-            <template x-for="block in blocks">
-              <li x-bind:class="colors[block.key]" :style="'--hours:' + block.hours"
-                class="group cursor-help relative hover:scale-110 transform transition-all duration-500 hover:shadow-md hover:z-20">
-                <div
-                  class="text-sm transition-all opacity-0 whitespace-nowrap duration-300 delay-300 absolute top-full left-1/2 -translate-x-1/2 p-1 group-hover:opacity-100">
-                  <span x-text="block.hours"></span>h of <span x-text="block.key"></span></div>
-              </li>
+        <template x-if="totalHours">
+          <ul class="inline-flex w-full min-h-8 mt-4 relative">
+            <li x-text="name" class="absolute z-20 inset-y-0 content-center p-2"></li>
+            <ol class="inline-flex w-full min-h-8 relative z-10">
+              <template x-for="block in blocks">
+                <li x-bind:class="colors[block.key]" :style="'--hours:' + block.hours"
+                  class="group cursor-help relative hover:scale-110 transform transition-all duration-500 hover:shadow-md hover:z-20">
+                  <div
+                    class="text-sm transition-all opacity-0 whitespace-nowrap duration-300 delay-300 absolute top-full left-1/2 -translate-x-1/2 p-1 group-hover:opacity-100">
+                    <span x-text="block.hours"></span>h of <span x-text="block.key"></span></div>
+                </li>
+              </template>
+            </ol>
+            <template x-if="over">
+              <li class="bg-red-600 text-white font-bold absolute top-0 right-0 rounded-full w-8 h-8 grid place-content-center translate-x-1/2 -translate-y-1/2 z-20">!</li>
             </template>
-          </ol>
-          <template x-if="over">
-            <li class="bg-red-600 text-white font-bold absolute top-0 right-0 rounded-full w-8 h-8 grid place-content-center translate-x-1/2 -translate-y-1/2 z-20">!</li>
-          </template>
-        </ul>
+          </ul>
+        </template>
       </div>
       <!-- END: Chart -->
   
@@ -461,7 +461,7 @@
                     <div class="relative" x-id="['block-type', 'hours']">
                       <div class="absolute inset-y-0 start-0 flex items-center text-gray-500 ps-px">
                         <label :for="$id('block-type')" class="sr-only">Time Category</label>
-                        <select :id="$id('block-type')" class="block bg-transparent h-full w-full border-transparent rounded-lg focus:ring-blue-600 focus:border-blue-600 px-4" x-model="item.key">
+                        <select :id="$id('block-type')" class="block bg-transparent h-full w-full border-transparent rounded-lg focus:ring-blue-600 focus:border-blue-600 px-4 text-sm" x-model="item.key">
                           <template x-for="(color, key) in colors">
                             <option x-bind:selected="item.key == key" x-bind:value="key" x-text="blockLabels[key]">
                           </template>
@@ -482,13 +482,13 @@
                       <span class="absolute right-4 top-0 bottom-0 grid content-center text-sm text-gray-500">hrs</span>
                     </div>
                   </div>
-                  <div class="flex gap-2">
-                    <button @click="addBlock(index)" class="p-2 text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
+                  <div class="flex gap-1 sm:gap-2">
+                    <button @click="addBlock(index)" class= p-1.5"sm:p-2 text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
                       <path d="M12 8V16M16 12L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                       <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
                     </svg></button>
-                    <button x-bind:disabled="blocks.length == 1" @click="removeBlock(index)" class="disabled:text-gray-300 disabled:pointer-events-none text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700 p-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" color="#000000" fill="none">
+                    <button x-bind:disabled="blocks.length == 1" @click="removeBlock(index)" class="disabled:text-gray-300 disabled:pointer-events-none text-gray-700 rounded-full hover:bg-slate-100 hover:text-lime-700 p-1.5 sm:p-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" class="text-current" fill="none">
                         <path d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                         <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                         <path d="M9.5 16.5L9.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -520,7 +520,7 @@
       x-transition:enter-end="opacity-100 translate-y-0"
       x-transition:leave-start="opacity-100 translate-y-0"
       x-transition:leave-end="opacity-0 translate-y-full"
-      class="fixed transition ease-out duration-300 bg-red-700 p-4 bottom-4 left-4 rounded-lg block text-white">
+      class="fixed transition ease-out duration-300 bg-red-700 p-4 bottom-4 left-4 right-4 sm:right-auto rounded-lg block text-white">
     </div>
 
     <template x-component="icon-sleep">
